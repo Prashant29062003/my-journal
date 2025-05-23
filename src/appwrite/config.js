@@ -109,15 +109,10 @@ class Service{
     }
 
     async downloadFile(fileId){
-        try {
-            await this.bucket.getFileDownload(
+        return this.bucket.getFileDownload(
                 conf.appwriteBucketId,
                 fileId
             )
-        } catch (error) {
-            console.log("Error :: download-file: ", error);
-            
-        }
     }
 
     async deleteFile(fileId){
