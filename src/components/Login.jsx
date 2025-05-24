@@ -1,4 +1,3 @@
-import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login as authLogin } from '../store/authSlice'
 import {Button, Input, Logo} from './index'
@@ -20,6 +19,7 @@ const Login = () => {
             if(session){
                 const userData = await authService.getCurrentUser();
                 if(userData) dispatch(authLogin(userData));
+                navigate('/');
             }
         } catch (error) {
             setError(error.message)
