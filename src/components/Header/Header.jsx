@@ -8,7 +8,7 @@ const Header = () => {
 
   const navigate = useNavigate();
 
-  cosnt navItems = [
+  const navItems = [
     {
       name: "Home",
       slug: "/",
