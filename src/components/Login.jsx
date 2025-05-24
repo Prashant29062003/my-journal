@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login as authLogin } from '../store/authSlice'
-import {Button, Input,Logo} from './index'
+import {Button, Input, Logo} from './index'
 import { useDispatch } from 'react-redux'
 import authService from '../appwrite/auth'
 import { useForm } from 'react-hook-form'
@@ -40,8 +40,32 @@ const Login = () => {
                 </Link>
 
             </p>
-            [error && <p>
-                </p>]
+            {error && <p className='text-red-600 mt-8 text-center'>{error}</p>}
+            <form onSubmit={handleSubmit(login)} className='mt-8'>
+                <div className='space-y-5'>
+                    <Input 
+                        label="Email: "
+                        placeholder="Enter your email"
+                        type="email"
+                        {...register("email", {
+                            required: true,
+                            validate: {
+                                matchPattern: (value) => /^\w+([.-]?\w+)*([.-]?\w{2,3})+$/.test(value) || "Email address must be valid address."
+                            }
+                        })}
+                    />
+                    <Input
+                        label="Password: "
+                        placeholder="Enter your password"
+                        type="password"
+                        {...register("password", {
+                            required: true
+                        })}
+
+                    />
+                    <Button className='w-full'type='submit' >Sign in</Button>
+                </div>
+            </form>
         </div>
     </div>
   )
