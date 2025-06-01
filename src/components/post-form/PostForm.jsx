@@ -1,0 +1,109 @@
+import {RTE, Button, Input, Select} from "../index";
+import appwriteService from '../../appwrite/config';
+import { Navigate, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import React, { useCallback } from "react";
+import { useSelector } from "react-redux";
+
+
+const PostForm = ({post}) => {
+    const {register, handleSubmit, watch, setValue, control, getValues} = useForm({
+        defaultValues: {
+            title: post?.title || '',
+            slug: post?.slug || '',
+            content: post?.content || '',
+            status: post.status ||  'active',
+        }
+    })
+
+    const navigate = useNavigate();
+    const userData = useSelector(state => state.user.userData);
+
+    const submit = async (data)=> {
+        if(post){
+             const file = data.image[0] ? appwriteService.uploadFile(data.image[0]) : null
+
+             if(file){
+                appwriteService.deleteFile(post.featuredImage)
+             }
+             const dbPost = await appwriteService.updatePost(post.$id, {
+                ...data,
+                featuredImage: file ? file.$id : undefined
+             })
+             if(dbPost){
+                navigate(`/post/${dbPost.$id}`)
+             }
+        }else{
+            const file = await appwriteService.uploadFile(data.image[0])
+
+            if(file){
+                const fileId = file.$id;
+                data.featuredImage = fileId;
+                const dbPost = await appwriteService.createPost({
+                    ...data,
+                    userId: userData.$id
+                })
+                if(dbPost){
+                    navigate(`/post/${dbPost.$id}`)
+                }
+            }
+        }
+    }
+
+    const slugTransform = useCallback((value) => {
+        if(value && typeof value === 'string'){
+            
+            // first - way
+            // const slug = value.toLowerCase().replace(//g, '-')
+            // setValue("slug", slug)
+            // return slug
+
+            // second way
+            // regex : it's under / <-- in-between --> /
+            // eg. /[a-zA-Z]/g ,liekwise
+            // ^ --> negation(i.e. not included )
+            // [a-zA-z] --> range of a-z & A-Z 
+            // \d --> digit
+            // \s --> spaces (we can directly remove this \s which directly select the spaces and replace method replace the space with '-')
+
+            return value
+            .trim()
+            .toLowerCase()
+            .replace(/^[a-zA-Z\d\s]+/g, '-')
+            .replace(/\s/g, '-')
+        }
+
+        return ''
+    },[])
+
+    React.useEffect(() => {
+        const subscription = watch((value, {name}) => {
+            if(name === 'title'){
+                setValue('slug', slugTransform(value.title, {shoulValidate: true}))
+            }
+        })
+
+        return () => {
+            // memory management (basically concept of unmounting (cleanup) behavior)
+            // -- This is a cleanup function — React calls it when the component unmounts or before re-running the effect.
+            // -- Its purpose here: unsubscribe the form watcher to avoid memory leaks or stale updates.
+            subscription.unsubscribe()
+        }
+    }, [watch,slugTransform,setValue])
+  return (
+    <div>
+      <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
+        <div className="w-2/3 px-2">
+            <Input 
+                label="Title: "
+                placeholder="Title"
+                className="mb-4"
+                {...register("title", {required: true})}
+            />
+        </div>
+      </form>
+    </div>
+  )
+}
+
+export default PostForm
