@@ -21,7 +21,7 @@ const Header = () => {
     },
     {
       name: "Signup",
-      slug: "/sighup",
+      slug: "/signup",
       active: !authStatus
     },
     {
@@ -31,7 +31,7 @@ const Header = () => {
     },
     {
       name: "Add Post",
-      slug: "add-post",
+      slug: "/add-post",
       active: authStatus
     }
   ]
@@ -42,10 +42,10 @@ const Header = () => {
         <nav>
           <div className='mr-4'>
             <Link to="/">
-              <Logo width='70px'></Logo>
+              <Logo/>
             </Link>
           </div>
-          <ul className='flex ml-auto'>
+          <ul className='flex ml-auto space-x-4'>
             {
               navItems.map(item => 
                 item.active ? (
