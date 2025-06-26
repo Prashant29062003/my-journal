@@ -28,14 +28,16 @@ const Post = () => {
     },[slug, navigate]);
 
     const deletePost = () => {
-      appwriteService.deletePost(post.$id).then((staus)=> {
-        if(staus){
-          appwriteService.deleteFile(post.featureImage);
-          navigate('/');
-        }
-      })
-
+      if(window.confirm('Are you sure you want to delete this post?')) {
+        appwriteService.deletePost(post.$id).then((status)=> {
+          if(status){
+            appwriteService.deleteFile(post.featuredImage);
+            navigate('/');
+          }
+        })
+      }
     }
+
   return (
     post ? (
       <div>
@@ -68,7 +70,7 @@ const Post = () => {
         <div className='browser-css'>{parse(post.content)}</div>
       </Container>
     </div>
-    ): null
+    ): <p>loading...</p>
   )
 }
 

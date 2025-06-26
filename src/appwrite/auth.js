@@ -30,24 +30,20 @@ export class AuthService {
 
     async login({email, password}){
         try {
-            const session = await this.account.createEmailPasswordSession(email, password);
-            if(session){
-                // call other method
-            }else{
-                return session
-            }
+            return await this.account.createEmailPasswordSession(email, password);
         } catch (error) {
             console.log("Appwrite service :: Account login :: error", error);
+            return null;
         }
     }
 
     async getCurrentUser(){
         try {
-            await this.account.get();
+            return await this.account.get();
         } catch (error) {
             console.log("Appwrite service :: getCurrentUser :: error", error);
+            return null;
         }
-        return null;
     }
 
     async logout(){

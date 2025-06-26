@@ -17,9 +17,10 @@ class Service{
 
     async createPost({title, slug, content, featuredImage, status, userId}){
         try {
-            await this.databases.createDocument(
+            return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
+                conf.appwriteBucketId,
                 slug,
                 {
                     title,
@@ -31,15 +32,16 @@ class Service{
             )
         } catch (error) {
             console.log("Error :: creating-post: ", error);
-            
+            return null;
         }
     }
 
     async updatePost(slug, {title, content, featuredImage, status}){
         try {
-            await this.databases.updateDocument(
+            return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteProjectId,
+                conf.appwriteCollectionId,
                 slug,
                 {
                     title,
@@ -50,7 +52,7 @@ class Service{
             )
         } catch (error) {
             console.log("Error :: updating-post: ", error);
-            
+            return null;
         }
     }
 
@@ -70,41 +72,41 @@ class Service{
 
     async getPost(slug){
         try {
-            await this.databases.getDocument(
+            return await this.databases.getDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
                 slug
             )
         } catch (error) {
-            console.log("Error :: fething-post: ", error);
-            
+            console.log("Error :: fetching-post: ", error);
+            return null;
         }
     }
 
     async getAllPosts(queries = [Query.equal('status', 'active')]){
         try {
-            await this.databases.listDocuments(
+            return await this.databases.listDocuments(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
                 queries
             )
         } catch (error) {
-            console.log("Posts fething Error :: fething-posts: ", error);
-            return false;
+            console.log("Posts fetching Error :: fetching-posts: ", error);
+            return null;
         }
     }
 
     // file upload service
     async uploadFile(file){
         try {
-            return this.bucket.createFile(
+            return await this.bucket.createFile(
                 conf.appwriteBucketId,
                 ID.unique(),
                 file
             )
         } catch (error) {
             console.log("Error :: uploading-file: ", error);
-            return false
+            return null;
         }
     }
 
@@ -122,8 +124,7 @@ class Service{
                 fileId
             )
         } catch (error) {
-            console.log("Error :: download-file: ", error);
-            
+            console.log("Error :: deleting-file: ", error);
         }
     }
 

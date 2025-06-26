@@ -12,41 +12,67 @@ const PostForm = ({post}) => {
             title: post?.title || '',
             slug: post?.slug || '',
             content: post?.content || '',
-            status: post.status ||  'active',
+            status: post?.status ||  'active',
         }
     })
 
     const navigate = useNavigate();
-    const userData = useSelector(state => state.user.userData);
+    const [loading, setLoading] = React.useState(false);
+    const [error, setError] = React.useState(null);
+    const userData = useSelector(state => state.auth.userdata); // fixed selector
 
     const submit = async (data)=> {
-        if(post){
-             const file = data.image[0] ? appwriteService.uploadFile(data.image[0]) : null
-
-             if(file){
-                appwriteService.deleteFile(post.featuredImage)
-             }
-             const dbPost = await appwriteService.updatePost(post.$id, {
-                ...data,
-                featuredImage: file ? file.$id : undefined
-             })
-             if(dbPost){
-                navigate(`/post/${dbPost.$id}`)
-             }
-        }else{
-            const file = await appwriteService.uploadFile(data.image[0])
-
-            if(file){
+        setError(null);
+        setLoading(true);
+        try {
+            if(post){
+                let file = null;
+                if (data.image && data.image[0]) {
+                    file = await appwriteService.uploadFile(data.image[0]);
+                    if (file && post.featuredImage) {
+                        await appwriteService.deleteFile(post.featuredImage);
+                    }
+                }
+                const dbPost = await appwriteService.updatePost(post.$id, {
+                    ...data,
+                    featuredImage: file ? file.$id : post.featuredImage
+                });
+                if(dbPost){
+                    navigate(`/post/${dbPost.$id}`)
+                }
+            }else{
+                if (!userData || !userData.$id) {
+                    setError('User not authenticated. Please log in again.');
+                    setLoading(false);
+                    return;
+                }
+                if (!data.image || !data.image[0]) {
+                    setError('Please select an image to upload.');
+                    setLoading(false);
+                    return;
+                }
+                const file = await appwriteService.uploadFile(data.image[0]);
+                if (!file) {
+                    setError('Image upload failed.');
+                    setLoading(false);
+                    return;
+                }
                 const fileId = file.$id;
                 data.featuredImage = fileId;
                 const dbPost = await appwriteService.createPost({
                     ...data,
                     userId: userData.$id
-                })
+                });
                 if(dbPost){
                     navigate(`/post/${dbPost.$id}`)
+                } else {
+                    setError('Failed to create post.');
                 }
             }
+        } catch (err) {
+            setError('Something went wrong. Please try again.');
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -69,10 +95,9 @@ const PostForm = ({post}) => {
             return value
             .trim()
             .toLowerCase()
-            .replace(/^[a-zA-Z\d\s]+/g, '-')
-            .replace(/\s/g, '-')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
         }
-
         return ''
     },[])
 
@@ -92,6 +117,7 @@ const PostForm = ({post}) => {
     }, [watch,slugTransform,setValue])
   return (
     <div>
+      {error && <div className="text-red-500 mb-2">{error}</div>}
       <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
         <div className="w-2/3 px-2">
             <Input 
@@ -141,8 +167,9 @@ const PostForm = ({post}) => {
                     type="submit"
                     bgColor={post ? "bg-green-500" : undefined}
                     className="w-full"
+                    disabled={loading}
                     >
-                    {post ? "Update" : "Submit"}
+                    {loading ? (post ? "Updating..." : "Submitting...") : (post ? "Update" : "Submit")}
                 </Button>
         </div>
       </form>

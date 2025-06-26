@@ -9,7 +9,7 @@ import { useState } from 'react'
 const Login = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const {register, handleSubmit} = useForm();
+    const {register, handleSubmit, formState: { errors, isSubmitting }} = useForm();
     const [error, setError] = useState("");
 
     const login = async(data)=> {
@@ -31,14 +31,13 @@ const Login = () => {
             <div className="mb-2 flex justify-center">
                 <Logo width='100%'/>
             </div>
-            <h2 className='text-center text-2xl fornt-bold leading-tight'></h2>
+            <h2 className='text-center text-2xl font-bold leading-tight'>Sign In</h2>
             <p className='mt-2 text-center text-base text-black/60'>
                 Don&apos;t have any account?&nbsp;
                 <Link to={'/signup'}
                 className='font-medium transition-all duration-200 hover:underline'>
                     Sign Up
                 </Link>
-
             </p>
             {error && <p className='text-red-600 mt-8 text-center'>{error}</p>}
             <form onSubmit={handleSubmit(login)} className='mt-8'>
@@ -47,10 +46,12 @@ const Login = () => {
                         label="Email: "
                         placeholder="Enter your email"
                         type="email"
+                        error={errors.email?.message}
                         {...register("email", {
-                            required: true,
-                            validate: {
-                                matchPattern: (value) => /^\w+([.-]?\w+)*([.-]?\w{2,3})+$/.test(value) || "Email address must be valid address."
+                            required: "Email is required.",
+                            pattern: {
+                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                message: "Email address must be valid."
                             }
                         })}
                     />
@@ -58,12 +59,14 @@ const Login = () => {
                         label="Password: "
                         placeholder="Enter your password"
                         type="password"
+                        error={errors.password?.message}
                         {...register("password", {
-                            required: true
+                            required: "Password is required."
                         })}
-
                     />
-                    <Button className='w-full'type='submit' >Sign in</Button>
+                    <Button className='w-full' type='submit' disabled={isSubmitting}>
+                      {isSubmitting ? 'Signing in...' : 'Sign in'}
+                    </Button>
                 </div>
             </form>
         </div>
